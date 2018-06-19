@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using System.Net;
+using System.Numerics;
 using Newtonsoft.Json;
 using Npgsql;
 
@@ -17,12 +18,12 @@ namespace Rødliste
 
             foreach (var tema in temaer)
             foreach (var vurderingsenhet in tema.VurderingsEnheter)
-            {
-                Console.WriteLine(vurderingsenhet.Rødlistekategori + ": ");
+            foreach (var regel in vurderingsenhet.Regler)
+                ExecuteSql(regel, connString);
 
-                foreach (var regel in vurderingsenhet.Regler)
-                    ExecuteSql(regel, connString);
-            }
+            var json = JsonConvert.SerializeObject(temaer);
+
+            File.WriteAllText("temaer.json", json);
         }
 
         private static void ExecuteSql(Regel regel, string connString)
@@ -36,13 +37,14 @@ namespace Rødliste
                 // Retrieve all rows
                 using (var cmd = new NpgsqlCommand(sql, conn))
                 using (var reader = cmd.ExecuteReader())
+                {
+                    regel.Naturområder = new List<BigInteger>();
                     while (reader.Read())
                     {
                         var id = reader.GetInt64(0);
-                        Console.WriteLine('\t' + id);
                         regel.Naturområder.Add(id);
                     }
-
+                }
                 //// Insert some data
                 //using (var cmd = new NpgsqlCommand())
                 //{
