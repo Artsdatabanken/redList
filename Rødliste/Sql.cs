@@ -42,9 +42,9 @@ namespace Rødliste
 
         private static string CreateSqlStringForRegel(Sql regelSql)
         {
-            var sql = "SELECT na.geometry_id FROM " + string.Join(",", regelSql.From).TrimEnd(',');
+            var sql = "SELECT na.geometry_id FROM " + string.Join(",", regelSql.From);
 
-            sql += " WHERE " + string.Join(" AND ", regelSql.Where).TrimEnd(',');
+            sql += " WHERE " + string.Join(" AND ", regelSql.Where);
 
             return sql;
         }
