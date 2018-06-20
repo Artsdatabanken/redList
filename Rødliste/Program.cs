@@ -12,7 +12,7 @@ namespace Rødliste
         {
             var temaer = ReadDefinitions();
 
-            var connString = args[0]; //"Host=myserver;Username=mylogin;Password=mypass;Database=mydatabase";
+            var connString = CreateConnectionstring(args[0]);
 
             foreach (var tema in temaer)
             foreach (var vurderingsenhet in tema.VurderingsEnheter)
@@ -22,6 +22,12 @@ namespace Rødliste
             var json = JsonConvert.SerializeObject(temaer);
 
             File.WriteAllText("temaer.json", json);
+        }
+
+        private static string CreateConnectionstring(string configFile)
+        {
+            dynamic config = JsonConvert.DeserializeObject(File.ReadAllText(configFile));
+            return $"Host={config.host};Username={config.user};Password={config.pass};Database={config.db}";
         }
 
         private static IEnumerable<Tema> ReadDefinitions()
