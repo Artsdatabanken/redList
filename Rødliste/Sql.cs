@@ -12,39 +12,31 @@ namespace Rødliste
         public static void Execute(Regel regel, string connString)
         {
             var sql = CreateSqlStringForRegel(regel.Sql);
+            var trimChars = new [] {'{', '}'};
 
             using (var conn = new NpgsqlConnection(connString))
             {
                 conn.Open();
 
-                // Retrieve all rows
                 using (var cmd = new NpgsqlCommand(sql, conn))
                 using (var reader = cmd.ExecuteReader())
                 {
-                    regel.Naturområder = new List<BigInteger>();
+                    if(reader.HasRows) regel.Naturområder = new List<string>();
                     while (reader.Read())
                     {
-                        var id = reader.GetInt64(0);
-                        regel.Naturområder.Add(id);
+                        var localid = reader.GetString(0);
+                        localid = localid.Trim(trimChars);
+                        regel.Naturområder.Add(localid);
                     }
                 }
-
-                //// Insert some data
-                //using (var cmd = new NpgsqlCommand())
-                //{
-                //    cmd.Connection = conn;
-                //    cmd.CommandText = "INSERT INTO data (some_field) VALUES (@p)";
-                //    cmd.Parameters.AddWithValue("p", "Hello world");
-                //    cmd.ExecuteNonQuery();
-                //}
             }
         }
 
         private static string CreateSqlStringForRegel(Sql regelSql)
         {
-            var sql = "SELECT na.geometry_id FROM " + string.Join(",", regelSql.From);
+            var sql = "SELECT l_g.localid FROM data.localid_geometry l_g, " + string.Join(",", regelSql.From);
 
-            sql += " WHERE " + string.Join(" AND ", regelSql.Where);
+            sql += " WHERE " + string.Join(" AND ", regelSql.Where) + " AND l_g.geometry_id = na.geometry_id";
 
             return sql;
         }

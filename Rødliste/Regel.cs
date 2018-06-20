@@ -8,7 +8,7 @@ namespace Rødliste
         public List<string> Beskrivelsesvariabler;
         public string Natursystem;
         public Sql Sql { get; set; }
-        public List<BigInteger> Naturområder { get; set; }
+        public List<string> Naturområder { get; set; }
 
         public static Regel Get(dynamic regel)
         {
