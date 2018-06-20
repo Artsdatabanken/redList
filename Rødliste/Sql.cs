@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Numerics;
+using System.IO;
+using Newtonsoft.Json;
 using Npgsql;
 
 namespace Rødliste
@@ -9,8 +10,10 @@ namespace Rødliste
         public List<string> From { get; set; }
         public List<string> Where { get; set; }
 
-        public static void Execute(Regel regel, string connString)
+        public static void Execute(Regel regel, string configFile)
         {
+            var connString = CreateConnectionstring(configFile);
+
             var sql = CreateSqlStringForRegel(regel.Sql);
             var trimChars = new [] {'{', '}'};
 
@@ -30,6 +33,12 @@ namespace Rødliste
                     }
                 }
             }
+        }
+
+        private static string CreateConnectionstring(string configFile)
+        {
+            dynamic config = JsonConvert.DeserializeObject(File.ReadAllText(configFile));
+            return $"Host={config.host};Username={config.user};Password={config.pass};Database={config.db}";
         }
 
         private static string CreateSqlStringForRegel(Sql regelSql)
