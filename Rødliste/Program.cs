@@ -9,27 +9,33 @@ namespace Rødliste
 {
     class Program
     {
+        private static bool _debug;
+
         static void Main(string[] args)
         {
+            if (args.Length > 1) _debug = true;
+
             WriteJson(GetRedlist(args));
         }
 
         private static List<Tema> GetRedlist(IReadOnlyList<string> args)
         {
+            Sql.SetConnString(args[0]);
+
             var definitions = ReadDefinitions();
 
             var redList = definitions.ToList();
             foreach (var tema in redList)
                 foreach (var vurderingsenhet in tema.VurderingsEnheter)
                     foreach (var regel in vurderingsenhet.Regler)
-                        Sql.Execute(regel, args[0]);
+                        Sql.Execute(regel);
 
             return redList;
         }
 
         private static void WriteJson(List<Tema> redList)
         {
-            CleanJson(redList);
+            if(!_debug) CleanJson(redList);
 
             var settings = new JsonSerializerSettings
             {
@@ -41,7 +47,7 @@ namespace Rødliste
 
             var json = JsonConvert.SerializeObject(redList, settings);
 
-            File.WriteAllText("redList.json", json);
+            File.WriteAllText("rv.json", json);
         }
 
         private static void CleanJson(List<Tema> redList)
@@ -68,7 +74,7 @@ namespace Rødliste
             var definitions = new List<Tema>();
 
             dynamic json = JsonConvert.DeserializeObject<List<ExpandoObject>>(
-                new WebClient().DownloadString("https://test.artsdatabanken.no/data/json/rv/rv.json"));
+                new WebClient().DownloadString("https://test.artsdatabanken.no/data/json/rv/definitions.json"));
 
             foreach (var vurderingsenheter in json) definitions.Add(Tema.Get(vurderingsenheter));
 
