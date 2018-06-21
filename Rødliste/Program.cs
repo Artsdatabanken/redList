@@ -26,16 +26,16 @@ namespace Rødliste
 
             var redList = definitions.ToList();
             foreach (var tema in redList)
-                foreach (var vurderingsenhet in tema.VurderingsEnheter)
-                    foreach (var regel in vurderingsenhet.Regler)
-                        Sql.Execute(regel);
+            foreach (var vurderingsenhet in tema.VurderingsEnheter)
+            foreach (var regel in vurderingsenhet.Regler)
+                Sql.GetNaturområder(regel);
 
             return redList;
         }
 
         private static void WriteJson(List<Tema> redList)
         {
-            if(!_debug) CleanJson(redList);
+            if (!_debug) CleanJson(redList);
 
             var settings = new JsonSerializerSettings
             {
@@ -60,6 +60,7 @@ namespace Rødliste
                     {
                         regel.Sql = null;
                     }
+
                     vurderingsenhet.Regler.RemoveAll(r => r.Naturområder == null);
                 }
 

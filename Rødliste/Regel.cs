@@ -14,7 +14,7 @@ namespace Rødliste
             var natursystem = new List<string> {"NA_" + regel.Natursystem};
 
             if (regel.Natursystem.Contains('-')) natursystem = Sql.GetPredecessors(natursystem);
-            
+
             var sql = new Sql
             {
                 From = new List<string>
@@ -24,7 +24,7 @@ namespace Rødliste
                 },
                 Where = new List<string>
                 {
-                    "na.code IN ('" + string.Join("','", natursystem) + "')",
+                    $"na.code IN ('{string.Join("','", natursystem)}')",
                     "l_g.geometry_id = na.geometry_id"
                 }
             };
@@ -56,7 +56,7 @@ namespace Rødliste
                 beskrivelsesVariabler.Add(regel.BeskrivelsesVariabler[i]);
 
                 var prefix = char.IsNumber(regel.BeskrivelsesVariabler[i][0]) ? "BS_" : "MI_";
-                
+
                 sql.From.Add($"data.codes_geometry c_g{i}");
                 sql.Where.Add($"c_g{i}.code = '{prefix}{regel.BeskrivelsesVariabler[i]}'");
                 sql.Where.Add($"c_g{i}.geometry_id = na.geometry_id");
