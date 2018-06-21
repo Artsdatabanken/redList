@@ -54,9 +54,12 @@ namespace Rødliste
             for (var i = 0; i < regel.BeskrivelsesVariabler.Count; i++)
             {
                 beskrivelsesVariabler.Add(regel.BeskrivelsesVariabler[i]);
-                sql.From.Add("data.codes_geometry c_g" + i);
-                sql.Where.Add("c_g" + i + ".code LIKE '%_" + regel.BeskrivelsesVariabler[i] + "'");
-                sql.Where.Add("c_g" + i + ".geometry_id = na.geometry_id");
+
+                var prefix = char.IsNumber(regel.BeskrivelsesVariabler[i][0]) ? "BS_" : "MI_";
+                
+                sql.From.Add($"data.codes_geometry c_g{i}");
+                sql.Where.Add($"c_g{i}.code = '{prefix}{regel.BeskrivelsesVariabler[i]}'");
+                sql.Where.Add($"c_g{i}.geometry_id = na.geometry_id");
             }
 
             return beskrivelsesVariabler;
