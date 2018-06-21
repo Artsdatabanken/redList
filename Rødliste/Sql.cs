@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using Npgsql;
@@ -7,21 +8,21 @@ namespace Rødliste
 {
     internal class Sql
     {
+        public string Select { get; set; }
         public List<string> From { get; set; }
         public List<string> Where { get; set; }
-
-        public static void Execute(Regel regel, string configFile)
+        internal static string ConnString  { get; set; }
+        
+        public static void Execute(Regel regel)
         {
-            var connString = CreateConnectionstring(configFile);
-
-            var sql = CreateSqlStringForRegel(regel.Sql);
+            regel.Sql.Select = CreateSqlStringForRegel(regel.Sql);
             var trimChars = new [] {'{', '}'};
 
-            using (var conn = new NpgsqlConnection(connString))
+            using (var conn = new NpgsqlConnection(ConnString))
             {
                 conn.Open();
 
-                using (var cmd = new NpgsqlCommand(sql, conn))
+                using (var cmd = new NpgsqlCommand(regel.Sql.Select, conn))
                 using (var reader = cmd.ExecuteReader())
                 {
                     if(reader.HasRows) regel.Naturområder = new List<string>();
@@ -43,11 +44,43 @@ namespace Rødliste
 
         private static string CreateSqlStringForRegel(Sql regelSql)
         {
-            var sql = "SELECT l_g.localid FROM data.localid_geometry l_g, " + string.Join(",", regelSql.From);
+            var sql = "SELECT l_g.localid FROM " + string.Join(",", regelSql.From);
 
-            sql += " WHERE " + string.Join(" AND ", regelSql.Where) + " AND l_g.geometry_id = na.geometry_id";
+            sql += " WHERE " + string.Join(" AND ", regelSql.Where);
 
             return sql;
+        }
+
+        public static List<string> GetPredecessors(List<string> natursystem)
+        {
+            var select =
+                $"SELECT ch.predecessor FROM data.codeshierarchy ch WHERE ch.successor = '{natursystem[0]}' AND (ch.predecessor like '%-E-%' OR ch.predecessor like '%-C-%')";
+            using (var conn = new NpgsqlConnection(ConnString))
+            {
+                conn.Open();
+
+                using (var cmd = new NpgsqlCommand(select, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (!reader.HasRows)
+                    {
+                        Console.WriteLine($"WARNING: No predescessors found for {natursystem[0]}");
+                        return natursystem;
+                    }
+                    while (reader.Read())
+                    {
+                        natursystem.Add(reader.GetString(0));
+                    }
+                }
+            }
+
+            return natursystem;
+        }
+
+        public static void SetConnString(string configFile)
+        {
+            ConnString = CreateConnectionstring(configFile);
+
         }
     }
 }

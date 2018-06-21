@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Numerics;
 
 namespace Rødliste
 {
@@ -12,15 +11,21 @@ namespace Rødliste
 
         public static Regel Get(dynamic regel)
         {
+            var natursystem = new List<string> {"NA_" + regel.Natursystem};
+
+            if (regel.Natursystem.Contains('-')) natursystem = Sql.GetPredecessors(natursystem);
+            
             var sql = new Sql
             {
                 From = new List<string>
                 {
+                    "data.localid_geometry l_g",
                     "data.codes_geometry na"
                 },
                 Where = new List<string>
                 {
-                    "na.code = 'NA_" + regel.Natursystem + "'"
+                    "na.code IN ('" + string.Join("','", natursystem) + "')",
+                    "l_g.geometry_id = na.geometry_id"
                 }
             };
 
