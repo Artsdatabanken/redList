@@ -13,7 +13,7 @@ namespace Rødliste
         {
             var natursystem = new List<string> {"NA_" + regel.Natursystem};
 
-            if (regel.Natursystem.Contains('-')) natursystem = Sql.GetPredecessors(natursystem);
+            if (regel.Natursystem.Contains('-')) Sql.GetPredecessors(natursystem);
 
             var sql = new Sql
             {

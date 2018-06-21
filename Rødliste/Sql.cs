@@ -48,7 +48,7 @@ namespace Rødliste
             regelSql.Select += " WHERE " + string.Join(" AND ", regelSql.Where);
         }
 
-        public static List<string> GetPredecessors(List<string> natursystem)
+        public static void GetPredecessors(List<string> natursystem)
         {
             var select =
                 $"SELECT ch.predecessor FROM data.codeshierarchy ch WHERE ch.successor = '{natursystem[0]}' AND (ch.predecessor like '%-E-%' OR ch.predecessor like '%-C-%')";
@@ -56,19 +56,13 @@ namespace Rødliste
             natursystem.AddRange(Execute(select).ToList());
 
             if (natursystem.Count == 1) Console.WriteLine($"WARNING: No predecessor(s) found for {natursystem[0]}");
-
-            return natursystem;
         }
 
         public static void SetConnString(string configFile)
         {
-            ConnString = CreateConnectionstring(configFile);
-        }
-
-        private static string CreateConnectionstring(string configFile)
-        {
             dynamic config = JsonConvert.DeserializeObject(File.ReadAllText(configFile));
-            return $"Host={config.host};Username={config.user};Password={config.pass};Database={config.db}";
+
+            ConnString = $"Host={config.host};Username={config.user};Password={config.pass};Database={config.db}";
         }
     }
 }
