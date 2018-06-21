@@ -28,26 +28,30 @@ namespace Rødliste
             }
         }
 
-        private static string CreateSqlStringForRegel(Sql regelSql)
-        {
-            var sql = "SELECT l_g.localid FROM " + string.Join(",", regelSql.From);
-
-            sql += " WHERE " + string.Join(" AND ", regelSql.Where);
-
-            return sql;
-        }
-
         public static void GetNaturområder(Regel regel)
         {
-            regel.Sql.Select = CreateSqlStringForRegel(regel.Sql);
+            CreateSqlStringForRegel(regel.Sql);
 
             var naturområder = Execute(regel.Sql.Select).ToList();
 
-            var trimChars = new[] {'{', '}'};
-            for (var index = 0; index < naturområder.Count; index++)
-                naturområder[index] = naturområder[index].Trim(trimChars);
+            TrimCurlyBrackets(naturområder);
 
             regel.Naturområder = naturområder.Count > 0 ? naturområder : null;
+        }
+
+        private static void CreateSqlStringForRegel(Sql regelSql)
+        {
+            regelSql.Select = "SELECT l_g.localid FROM " + string.Join(",", regelSql.From);
+
+            regelSql.Select += " WHERE " + string.Join(" AND ", regelSql.Where);
+        }
+
+        private static void TrimCurlyBrackets(IList<string> naturområder)
+        {
+            var trimChars = new[] {'{', '}'};
+
+            for (var index = 0; index < naturområder.Count; index++)
+                naturområder[index] = naturområder[index].Trim(trimChars);
         }
 
         public static List<string> GetPredecessors(List<string> natursystem)
@@ -57,7 +61,7 @@ namespace Rødliste
 
             natursystem.AddRange(Execute(select).ToList());
 
-            if (natursystem.Count == 1) Console.WriteLine($"WARNING: No predescessors found for {natursystem[0]}");
+            if (natursystem.Count == 1) Console.WriteLine($"WARNING: No predecessor(s) found for {natursystem[0]}");
 
             return natursystem;
         }
