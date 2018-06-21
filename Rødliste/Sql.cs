@@ -13,6 +13,7 @@ namespace Rødliste
         public List<string> From { get; set; }
         public List<string> Where { get; set; }
         internal static string ConnString { get; set; }
+        internal static readonly char[] TrimChars = {'{', '}'};
 
         private static IEnumerable<string> Execute(string select)
         {
@@ -34,7 +35,8 @@ namespace Rødliste
 
             var naturområder = Execute(regel.Sql.Select).ToList();
 
-            TrimCurlyBrackets(naturområder);
+            for (var index = 0; index < naturområder.Count; index++)
+                naturområder[index] = naturområder[index].Trim(TrimChars);
 
             regel.Naturområder = naturområder.Count > 0 ? naturområder : null;
         }
@@ -44,14 +46,6 @@ namespace Rødliste
             regelSql.Select = "SELECT l_g.localid FROM " + string.Join(",", regelSql.From);
 
             regelSql.Select += " WHERE " + string.Join(" AND ", regelSql.Where);
-        }
-
-        private static void TrimCurlyBrackets(IList<string> naturområder)
-        {
-            var trimChars = new[] {'{', '}'};
-
-            for (var index = 0; index < naturområder.Count; index++)
-                naturområder[index] = naturområder[index].Trim(trimChars);
         }
 
         public static List<string> GetPredecessors(List<string> natursystem)
