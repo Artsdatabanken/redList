@@ -9,11 +9,11 @@ namespace Rødliste
 {
     internal class Sql
     {
+        internal static readonly char[] TrimChars = {'{', '}'};
         public string QueryString { get; set; }
         public List<string> From { get; set; }
         public List<string> Where { get; set; }
         internal static string ConnString { get; set; }
-        internal static readonly char[] TrimChars = {'{', '}'};
 
         private static IEnumerable<string> Select(string queryString)
         {
@@ -70,15 +70,19 @@ namespace Rødliste
         private static void InsertCodes(string localid, string vurderingsenhetRødlistekategori)
         {
             // TODO: Make this more elegant
-            var codesId = Select($"SELECT id as codes_id FROM data.codes where code = '{vurderingsenhetRødlistekategori}'").First();
-            var geometryId = Select($"SELECT geometry_id FROM data.localid_geometry where localid = '{{{localid}}}'").First();
+            var codesId =
+                Select($"SELECT id as codes_id FROM data.codes where code = '{vurderingsenhetRødlistekategori}'")
+                    .First();
+            var geometryId = Select($"SELECT geometry_id FROM data.localid_geometry where localid = '{{{localid}}}'")
+                .First();
 
             if (Select(
                     $"SELECT geometry_id FROM data.codes_geometry c_g WHERE codes_id = {codesId} AND geometry_id = {geometryId}")
                 .Any()) return;
 
-            var insertString = $"INSERT INTO data.codes_geometry (codes_id, geometry_id, code) values ({codesId},{geometryId},'{vurderingsenhetRødlistekategori}')";
-            
+            var insertString =
+                $"INSERT INTO data.codes_geometry (codes_id, geometry_id, code) values ({codesId},{geometryId},'{vurderingsenhetRødlistekategori}')";
+
             Insert(insertString);
         }
 
