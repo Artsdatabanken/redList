@@ -69,6 +69,7 @@ namespace Rødliste
 
         private static void InsertCodes(string localid, string vurderingsenhetRødlistekategori)
         {
+            // TODO: Make this more elegant
             var codesId = Select($"SELECT id as codes_id FROM data.codes where code = '{vurderingsenhetRødlistekategori}'").First();
             var geometryId = Select($"SELECT geometry_id FROM data.localid_geometry where localid = '{{{localid}}}'").First();
 
