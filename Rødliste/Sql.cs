@@ -9,19 +9,19 @@ namespace Rødliste
 {
     internal class Sql
     {
-        public string Select { get; set; }
+        public string QueryString { get; set; }
         public List<string> From { get; set; }
         public List<string> Where { get; set; }
         internal static string ConnString { get; set; }
         internal static readonly char[] TrimChars = {'{', '}'};
 
-        private static IEnumerable<string> Execute(string select)
+        private static IEnumerable<string> Select(string queryString)
         {
             using (var conn = new NpgsqlConnection(ConnString))
             {
                 conn.Open();
 
-                using (var cmd = new NpgsqlCommand(select, conn))
+                using (var cmd = new NpgsqlCommand(queryString, conn))
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read()) yield return reader.GetString(0);
@@ -33,7 +33,7 @@ namespace Rødliste
         {
             CreateSqlStringForRegel(regel.Sql);
 
-            var naturområder = Execute(regel.Sql.Select).ToList();
+            var naturområder = Select(regel.Sql.QueryString).ToList();
 
             for (var index = 0; index < naturområder.Count; index++)
                 naturområder[index] = naturområder[index].Trim(TrimChars);
@@ -43,9 +43,9 @@ namespace Rødliste
 
         private static void CreateSqlStringForRegel(Sql regelSql)
         {
-            regelSql.Select = "SELECT l_g.localid FROM " + string.Join(",", regelSql.From);
+            regelSql.QueryString = "SELECT l_g.localid FROM " + string.Join(",", regelSql.From);
 
-            regelSql.Select += " WHERE " + string.Join(" AND ", regelSql.Where);
+            regelSql.QueryString += " WHERE " + string.Join(" AND ", regelSql.Where);
         }
 
         public static void GetPredecessors(List<string> natursystem)
@@ -53,7 +53,7 @@ namespace Rødliste
             var select =
                 $"SELECT ch.predecessor FROM data.codeshierarchy ch WHERE ch.successor = '{natursystem[0]}' AND (ch.predecessor like '%-E-%' OR ch.predecessor like '%-C-%')";
 
-            natursystem.AddRange(Execute(select).ToList());
+            natursystem.AddRange(Select(select).ToList());
 
             if (natursystem.Count == 1) Console.WriteLine($"WARNING: No predecessor(s) found for {natursystem[0]}");
         }
