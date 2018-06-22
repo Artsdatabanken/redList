@@ -24,21 +24,61 @@ namespace Rødliste
                 using (var cmd = new NpgsqlCommand(queryString, conn))
                 using (var reader = cmd.ExecuteReader())
                 {
-                    while (reader.Read()) yield return reader.GetString(0);
+                    switch (reader.GetDataTypeName(0))
+                    {
+                        case "text":
+                            while (reader.Read()) yield return reader.GetString(0);
+                            break;
+                        default:
+                            while (reader.Read()) yield return reader.GetInt64(0).ToString();
+                            break;
+                    }
                 }
             }
         }
 
-        public static void GetNaturområder(Regel regel)
+        private static void Insert(string queryString)
+        {
+            using (var conn = new NpgsqlConnection(ConnString))
+            {
+                conn.Open();
+
+                using (var cmd = new NpgsqlCommand())
+                {
+                    cmd.Connection = conn;
+                    cmd.CommandText = queryString;
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+
+        public static void GetNaturområder(Regel regel, string vurderingsenhetRødlistekategori)
         {
             CreateSqlStringForRegel(regel.Sql);
 
-            var naturområder = Select(regel.Sql.QueryString).ToList();
+            var naturområder = new List<string>();
 
-            for (var index = 0; index < naturområder.Count; index++)
-                naturområder[index] = naturområder[index].Trim(TrimChars);
+            Select(regel.Sql.QueryString).ToList()
+                .ForEach(n => naturområder.Add(n.Trim(TrimChars)));
 
             regel.Naturområder = naturområder.Count > 0 ? naturområder : null;
+
+            regel.Naturområder?.ForEach(localid => InsertCodes(localid, "RL_" + vurderingsenhetRødlistekategori));
+        }
+
+        private static void InsertCodes(string localid, string vurderingsenhetRødlistekategori)
+        {
+            var codesId = Select($"SELECT id as codes_id FROM data.codes where code = '{vurderingsenhetRødlistekategori}'").First();
+            var geometryId = Select($"SELECT geometry_id FROM data.localid_geometry where localid = '{{{localid}}}'").First();
+
+            if (Select(
+                    $"SELECT geometry_id FROM data.codes_geometry c_g WHERE codes_id = {codesId} AND geometry_id = {geometryId}")
+                .Any()) return;
+
+            var insertString = $"INSERT INTO data.codes_geometry (codes_id, geometry_id, code) values ({codesId},{geometryId},'{vurderingsenhetRødlistekategori}')";
+            
+            Insert(insertString);
         }
 
         private static void CreateSqlStringForRegel(Sql regelSql)

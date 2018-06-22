@@ -29,7 +29,7 @@ namespace Rødliste
             foreach (var tema in redList)
             foreach (var vurderingsenhet in tema.VurderingsEnheter)
             foreach (var regel in vurderingsenhet.Regler)
-                Sql.GetNaturområder(regel);
+                Sql.GetNaturområder(regel, vurderingsenhet.Rødlistekategori);
 
             return redList;
         }
