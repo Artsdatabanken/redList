@@ -37,12 +37,10 @@ namespace Rødliste
                     Sql = sql
                 };
 
-            List<string> beskrivelsesVariabler = GetBeskrivelsesVariabler(regel, sql);
-
             return new Regel
             {
                 Natursystem = regel.Natursystem,
-                Beskrivelsesvariabler = beskrivelsesVariabler,
+                Beskrivelsesvariabler = GetBeskrivelsesVariabler(regel, sql),
                 Sql = sql
             };
         }
