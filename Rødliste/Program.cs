@@ -13,13 +13,15 @@ namespace Rødliste
 
         static void Main(string[] args)
         {
-            if (args.Length > 1) _debug = true;
+            // if (args.Length > 1) _debug = true;
 
             WriteJson(GetRedlist(args));
         }
 
         private static List<Tema> GetRedlist(IReadOnlyList<string> args)
         {
+            if (args.Count > 1) Sql.UseLocalid = false;
+
             Sql.SetConnString(args[0]);
 
             var definitions = ReadDefinitions();

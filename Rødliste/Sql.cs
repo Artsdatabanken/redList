@@ -14,6 +14,7 @@ namespace Rødliste
         public List<string> From { get; set; }
         public List<string> Where { get; set; }
         internal static string ConnString { get; set; }
+        public static bool UseLocalid = true;
 
         private static IEnumerable<string> Select(string queryString)
         {
@@ -55,7 +56,9 @@ namespace Rødliste
 
         public static void GetNaturområder(Regel regel, string vurderingsenhetRødlistekategori)
         {
-            CreateSqlStringForRegel(regel.Sql);
+            if(UseLocalid) CreateLocalidSqlStringForRegel(regel.Sql);
+
+            else CreateIdSqlStringForRegel(regel.Sql);
 
             var naturområder = new List<string>();
 
@@ -64,9 +67,9 @@ namespace Rødliste
 
             regel.Naturområder = naturområder.Count > 0 ? naturområder : null;
 
-            regel.Naturområder?.ForEach(localid => InsertCodes(localid, "RL_" + vurderingsenhetRødlistekategori));
+            if(UseLocalid) regel.Naturområder?.ForEach(localid => InsertCodes(localid, "RL_" + vurderingsenhetRødlistekategori));
         }
-
+        
         private static void InsertCodes(string localid, string vurderingsenhetRødlistekategori)
         {
             // TODO: Make this more elegant
@@ -86,9 +89,16 @@ namespace Rødliste
             Insert(insertString);
         }
 
-        private static void CreateSqlStringForRegel(Sql regelSql)
+        private static void CreateLocalidSqlStringForRegel(Sql regelSql)
         {
             regelSql.QueryString = "SELECT l_g.localid FROM " + string.Join(",", regelSql.From);
+
+            regelSql.QueryString += " WHERE " + string.Join(" AND ", regelSql.Where);
+        }
+
+        private static void CreateIdSqlStringForRegel(Sql regelSql)
+        {
+            regelSql.QueryString = "SELECT na.geometry_id FROM " + string.Join(",", regelSql.From);
 
             regelSql.QueryString += " WHERE " + string.Join(" AND ", regelSql.Where);
         }
