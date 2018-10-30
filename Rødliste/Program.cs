@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using Newtonsoft.Json;
 
-namespace Rødliste
+namespace Redlist
 {
     class Program
     {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Rødliste
+namespace Redlist
 {
     internal class Tema
     {

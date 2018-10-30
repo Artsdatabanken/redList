@@ -5,7 +5,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Npgsql;
 
-namespace Rødliste
+namespace Redlist
 {
     internal class Sql
     {
