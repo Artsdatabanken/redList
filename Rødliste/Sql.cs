@@ -76,7 +76,7 @@ namespace Rødliste
             var codesId =
                 Select($"SELECT id as codes_id FROM data.codes where code = '{vurderingsenhetRødlistekategori}'")
                     .First();
-            var geometryId = Select($"SELECT geometry_id FROM data.localid_geometry where localid = '{{{localid}}}'")
+            var geometryId = Select($"SELECT geometry_id FROM data.localid_geometry where localid = '{localid}'")
                 .First();
 
             if (Select(
@@ -115,6 +115,8 @@ namespace Rødliste
 
         public static void SetConnString(string configFile)
         {
+            ConnString = configFile;
+            return;
             dynamic config = JsonConvert.DeserializeObject(File.ReadAllText(configFile));
 
             ConnString = $"Host={config.host};Username={config.user};Password={config.pass};Database={config.db}";
